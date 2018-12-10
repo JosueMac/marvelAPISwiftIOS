@@ -17,7 +17,7 @@
 		5A01BCE721B003CC001B23E9 /* ComicTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A01BCE621B003CC001B23E9 /* ComicTableViewCell.swift */; };
 		5A01BCE921B0076C001B23E9 /* tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A01BCE821B0076C001B23E9 /* tools.swift */; };
 		5A0EE1D421B12D0A0027F2B8 /* Modelo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0EE1D321B12D0A0027F2B8 /* Modelo.swift */; };
-		5A3CB69921B528A8008E97A7 /* COMICSBBDD.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5A3CB69721B528A8008E97A7 /* COMICSBBDD.xcdatamodeld */; };
+		5AB46D2321B6ACAE00A72AF8 /* ComicsBBDD-new.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5AB46D2121B6ACAE00A72AF8 /* ComicsBBDD-new.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,7 +33,7 @@
 		5A01BCE621B003CC001B23E9 /* ComicTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComicTableViewCell.swift; sourceTree = "<group>"; };
 		5A01BCE821B0076C001B23E9 /* tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tools.swift; sourceTree = "<group>"; };
 		5A0EE1D321B12D0A0027F2B8 /* Modelo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modelo.swift; sourceTree = "<group>"; };
-		5A3CB69821B528A8008E97A7 /* ComicsDDBB.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ComicsDDBB.xcdatamodel; sourceTree = "<group>"; };
+		5AB46D2221B6ACAE00A72AF8 /* ComicsBBDD.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ComicsBBDD.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +68,7 @@
 			children = (
 				5A01BCD421AFEFB9001B23E9 /* Main.storyboard */,
 				5A01BCD021AFEFB9001B23E9 /* AppDelegate.swift */,
+				5AB46D2121B6ACAE00A72AF8 /* ComicsBBDD-new.xcdatamodeld */,
 				5A01BCD221AFEFB9001B23E9 /* ViewController.swift */,
 				5A01BCE821B0076C001B23E9 /* tools.swift */,
 				5A0EE1D321B12D0A0027F2B8 /* Modelo.swift */,
@@ -75,7 +76,6 @@
 				5A01BCE421B00240001B23E9 /* ComicTableViewController.swift */,
 				5A01BCE221B001F8001B23E9 /* ComicViewController.swift */,
 				5A01BCD721AFEFC0001B23E9 /* Assets.xcassets */,
-				5A3CB69721B528A8008E97A7 /* COMICSBBDD.xcdatamodeld */,
 				5A01BCD921AFEFC0001B23E9 /* LaunchScreen.storyboard */,
 				5A01BCDC21AFEFC0001B23E9 /* Info.plist */,
 			);
@@ -153,8 +153,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5AB46D2321B6ACAE00A72AF8 /* ComicsBBDD-new.xcdatamodeld in Sources */,
 				5A01BCD321AFEFB9001B23E9 /* ViewController.swift in Sources */,
-				5A3CB69921B528A8008E97A7 /* COMICSBBDD.xcdatamodeld in Sources */,
 				5A01BCD121AFEFB9001B23E9 /* AppDelegate.swift in Sources */,
 				5A0EE1D421B12D0A0027F2B8 /* Modelo.swift in Sources */,
 				5A01BCE321B001F8001B23E9 /* ComicViewController.swift in Sources */,
@@ -362,13 +362,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		5A3CB69721B528A8008E97A7 /* COMICSBBDD.xcdatamodeld */ = {
+		5AB46D2121B6ACAE00A72AF8 /* ComicsBBDD-new.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				5A3CB69821B528A8008E97A7 /* ComicsDDBB.xcdatamodel */,
+				5AB46D2221B6ACAE00A72AF8 /* ComicsBBDD.xcdatamodel */,
 			);
-			currentVersion = 5A3CB69821B528A8008E97A7 /* ComicsDDBB.xcdatamodel */;
-			path = COMICSBBDD.xcdatamodeld;
+			currentVersion = 5AB46D2221B6ACAE00A72AF8 /* ComicsBBDD.xcdatamodel */;
+			path = "ComicsBBDD-new.xcdatamodeld";
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

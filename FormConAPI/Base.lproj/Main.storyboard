@@ -25,14 +25,14 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="Label" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="phQ-cR-Bh9">
-                                            <rect key="frame" x="112" y="0.0" width="294" height="24"/>
-                                            <fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/>
+                                            <rect key="frame" x="112" y="0.0" width="294" height="20.5"/>
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="characterWrap" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="ri0-XE-cRr">
-                                            <rect key="frame" x="112" y="40" width="274" height="20.5"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <rect key="frame" x="112" y="28.5" width="274" height="20.5"/>
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -47,7 +47,7 @@
                                     <constraints>
                                         <constraint firstAttribute="trailingMargin" secondItem="ri0-XE-cRr" secondAttribute="trailing" constant="8" id="8mv-OU-gDU"/>
                                         <constraint firstItem="aSY-yr-5SC" firstAttribute="top" secondItem="gHD-DR-rDw" secondAttribute="top" id="NH2-Yo-WwY"/>
-                                        <constraint firstItem="ri0-XE-cRr" firstAttribute="top" secondItem="phQ-cR-Bh9" secondAttribute="bottom" constant="16" id="Nfd-qD-wJb"/>
+                                        <constraint firstItem="ri0-XE-cRr" firstAttribute="top" secondItem="phQ-cR-Bh9" secondAttribute="bottom" constant="8" id="Nfd-qD-wJb"/>
                                         <constraint firstAttribute="trailing" secondItem="phQ-cR-Bh9" secondAttribute="trailing" constant="8" id="Njl-Sk-Txf"/>
                                         <constraint firstItem="phQ-cR-Bh9" firstAttribute="leading" secondItem="aSY-yr-5SC" secondAttribute="trailing" constant="8" symbolic="YES" id="WdU-lO-JcO"/>
                                         <constraint firstAttribute="bottomMargin" secondItem="ri0-XE-cRr" secondAttribute="bottom" constant="8" id="d6P-9R-TrC"/>

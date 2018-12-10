@@ -53,15 +53,26 @@ struct RootJSON:Codable {
             let items:[Items]
             struct Items:Codable {
                let name:String
-               let role:String
+               let role:String?
             }
          }
          let creators:Creators
-         
+         let characters:Creators
       }
       let results:[Results]
    }
    let data:Data
+}
+
+
+// creo una carga temporal en un struct
+struct comicCarga {
+   let id:Int32
+   let title:String
+   let issueNumber:Int16
+   let imagenURL:URL?
+   let description:String?
+   let price:Double
 }
 
 //var datosJSON:[RootJSON] = []
@@ -74,15 +85,77 @@ var etag:String?
 // las siguientes veces he de usar el etag personal que nos devuelve
 // pero este etag hemos de poder guardarlo incluso cuando apague la app
 // lo vamos a guardar en UserDefaults, pero por seguridad no es lo mas seguro
+
 func cargar(datos:Data) {
+   // para usarlo un JSON hay que decodificarlo
    let decoder = JSONDecoder()
    do {
-      // meto todo en caché en un struct tipo RootJSON q he creado antes
-      datosCarga = try decoder.decode(RootJSON.self, from: datos)
+      // meto todo en caché en un struct array
+      let carga = try decoder.decode(RootJSON.self, from: datos)
       UserDefaults.standard.set(datosCarga?.etag, forKey: "etag")
       etag = datosCarga?.etag
       //print("Mi etag \(etag)")
-      
+      for dato in carga.data.results {
+         let cargaTemp = comicCarga(id: Int32(dato.id), title: dato.title, issueNumber: Int16(dato.issueNumber), imagenURL: dato.thumbnail.fullPath, description: dato.description ?? "No hay descripción", price: dato.prices.first?.price ?? 0)
+         
+         // miro si ya está creado el personaje que ha creado ese personaje
+         var personajes:[Personajes] = []
+         for personajeProtagonista in dato.characters.items {
+            if let existeEstePersonaje = existePersonaje(name: personajeProtagonista.name) {
+               personajes.append(existeEstePersonaje)
+            } else {
+               let newPersonaje = Personajes(context: context)
+               newPersonaje.nombre = personajeProtagonista.name
+               personajes.append(newPersonaje)
+            }
+         }
+         
+         // miro si ya está creado el autor que ha creado ese autor
+         var autores:[Autores] = []
+         for autor in dato.creators.items {
+            if let existeAutor = existeAutores(name: autor.name, role: autor.role ?? "None") {
+               autores.append(existeAutor)
+            } else {
+               let newAutor = Autores(context: context)
+               newAutor.nombre = autor.name
+               newAutor.role = autor.name
+               autores.append(newAutor)
+            }
+         }
+         
+         
+         
+         // si nos envian el mismo comic, vamos a remplazarlo
+         let consulta:NSFetchRequest<Comics> = Comics.fetchRequest()
+         consulta.predicate = NSPredicate(format: "id = %d", dato.id)
+         do {
+            let comic = try context.fetch(consulta)
+            if let comicExiste = comic.first {
+               comicExiste.titulo = cargaTemp.title
+               comicExiste.issueNumber = cargaTemp.issueNumber
+               comicExiste.portadaURL = cargaTemp.imagenURL
+               comicExiste.detalle = cargaTemp.description
+               comicExiste.precio = cargaTemp.price
+               // en la BBDD
+               comicExiste.personajes = NSOrderedSet(array:personajes)
+               comicExiste.autores = NSOrderedSet(array:autores)
+            } else {
+               // si es nuevo ya lo guardo en Contexto
+               let newComic = Comics(context: context)
+               newComic.id = cargaTemp.id
+               newComic.titulo = cargaTemp.title
+               newComic.issueNumber = cargaTemp.issueNumber
+               newComic.portadaURL = cargaTemp.imagenURL
+               newComic.detalle = cargaTemp.description
+               newComic.precio = cargaTemp.price
+               newComic.addToPersonajes(NSOrderedSet(array:personajes))
+               newComic.addToAutores(NSOrderedSet(array:autores))
+            }
+         } catch {
+             print("Fallo en la consulta del id del Comic \(error)")
+         }
+      }
+      saveContext()
       // ponemos un obserbador para ver cuando me ha descargado de internet. Lo escucha toda la app
       NotificationCenter.default.post(name: NSNotification.Name("CARGAOK"), object: nil)
       
@@ -91,71 +164,42 @@ func cargar(datos:Data) {
    }
 }
 
-/**
- Rellena una BBDD xc data modelo con los datos recogidos del RootJSON
- */
-func cargarDatosBBDD() {
-   // miramos si es la carga inicial y hay mas de 0 Comics en la base de datos
-   let consultaComics:NSFetchRequest<Comics> = Comics.fetchRequest()
-   let numComics = (try? context.count(for: consultaComics)) ?? 0
-   if numComics > 0 {
-      return
-   }
-   
-   guard datosCarga?.data.count == 0 else {
-      return
-   }
-   do {
-     // let decoder = JSONDecoder()
-     // let datosBruto = try Data(datosCarga)
-      let datosStruct = datosCarga
-      for dato in (datosStruct?.data.results)! {
-         let comic = Comics(context: context)
-         comic.id = Int16(dato.id)
-         comic.titulo = dato.title
-         comic.detalle = dato.description
-         if let precio = dato.prices.first?.price, precio > 0 {
-            comic.precio = (dato.prices.first?.price)!
-         } else {
-            comic.precio = 0
-         }
-         
 
- /* paso de la imagen de momento
-            if let imagenUrl = dato.thumbnail.fullPath {
-               // imagenUrl += "portrait_xlarge"
-               recuperaURL(url: imagenUrl) {
-                  imagen in
-                  DispatchQueue.main.async {
-                     if let resize = imagen.resizeImage(newWidth: cell.imagen.bounds.size.width) {
-                        cell.imagen.image = resize
-                        comic.portada = resize
-                     }
-                  }
-               }
-            }
-         }
- */
-         
-         /*
-         // miramos si jobtitle existe, y hemos de hacer una consulta
-         // para hacer busquedas con NSPredicate, buscar que es %@ (string) o %d  o %F en internet
-         let consultaPuesto:NSFetchRequest<Departamentos> = Departamentos.fetchRequest()
-         consultaPuesto.predicate = NSPredicate (format: "jobtitle = %@", dato.jobtitle)
-         // y ahora usamos la consulta
-         if let arrayDePuestos = try? context.fetch(consultaPuesto), let puesto = arrayDePuestos.first {
-            persona.jobtitle = puesto
+func existePersonaje(name:String) -> Personajes? {
+   let consulta:NSFetchRequest<Personajes> = Personajes.fetchRequest()
+   consulta.predicate = NSPredicate(format: "nombre ==[c] %@", name)
+      do {
+         let character = try context.fetch(consulta)
+         if let valor = character.first {
+            return valor
          } else {
-            let puesto = Departamentos(context: context)
-            puesto.jobtitle = dato.jobtitle
-            persona.jobtitle = puesto
+            return nil
          }
- */
+      } catch {
+         print("Fallo en la consulta de Personajes\(error)")
       }
-   }
-   NotificationCenter.default.post(name: NSNotification.Name("CARGABBDDOK"), object: nil)
-   saveContext()
+   return nil
 }
+
+   
+func existeAutores(name:String, role:String) -> Autores? {
+   let consulta:NSFetchRequest<Autores> = Autores.fetchRequest()
+   consulta.predicate = NSPredicate(format: "nombre ==[c] %@ AND role ==[c] %@", name, role)
+      do {
+         let autor = try context.fetch(consulta)
+         if let valor = autor.first {
+            return valor
+         } else {
+            return nil
+         }
+      } catch {
+         print("Fallo en la consulta de Autores\(error)")
+      }
+   return nil
+}
+
+      
+
 
 
 
@@ -178,7 +222,7 @@ func grabarDatos() {
 // cargo mi base de datos que he creado en el fichero Data Model (.xcdatamodeld)
 
 var persistenceContainer:NSPersistentContainer = {
-   let container = NSPersistentContainer(name: "COMICSBBDD")
+   let container = NSPersistentContainer(name: "ComicsBBDD-new")
    container.loadPersistentStores { (storeDescripcion, error) in
       if let error = error as NSError? {
          fatalError("Error inicialización de Base de Datos")
@@ -201,7 +245,7 @@ var context:NSManagedObjectContext {
 func saveContext() {
    if context.hasChanges {
       do {
-         try context.save()
+        try context.save()
       } catch {
          print("Error en la grabación en Base de Datos. \(error)")
       }

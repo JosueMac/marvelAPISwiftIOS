@@ -7,23 +7,72 @@
 //
 
 import UIKit
+import CoreData
 
 class ComicTableViewController: UITableViewController {
    
-
+   //var predicate:NSPredicate?
+   var sortedResult:[NSSortDescriptor] = []
+   
+   
+   // consulta en la BBDD // creoi una variable cuyo valor es el resultado de una funcion
+   lazy var resultComics:NSFetchedResultsController<Comics> = {
+      
+      // genero la consulta
+      let fetchComics:NSFetchRequest<Comics> = Comics.fetchRequest()
+      
+      // La consulta la quiero ordenada por el ID de forma descendente
+      var orden = [NSSortDescriptor(key: #keyPath(Comics.id), ascending: true)]
+      
+      // añade a esta ordenación la ordenación que pueda añadir en la var sortedResult
+      sortedResult.append(contentsOf: sortedResult)
+      fetchComics.sortDescriptors = orden
+      
+      //Meto dentro de resultComics La busqueda(fetchPersonas Select no se que Where noseque = noseque) en la bbdd que tenemos grabada en contexto
+      //en nuestro caso no vamos a agrupar sectionNameKeyPath
+      // al no agrupar por nada sectionNameKeyPath: nil --> resultComics.sections?.count
+      return NSFetchedResultsController(fetchRequest: fetchComics, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+      
+   }()
+   
+   // vamos a crear un REFRESCAR PANTALLA
+   lazy var refrescarPantalla:UIRefreshControl = {
+      let refrescar = UIRefreshControl()
+      // tiene que tener un selector
+      refrescar.addTarget(self, action: #selector(self.recargarDatosAlRefrescar), for:UIControl.Event.valueChanged)
+      
+      refrescar.tintColor = .red
+      return refrescar
+   }()
+   
+   
+   // atencion lo metemos en una funcion local
+   // le añadimos @objc pq UIRefreshControl es objective C
+   @objc func recargarDatosAlRefrescar() {
+      refrescoSemaforo = true
+      conexionMarvel()
+   }
+   
+   var refrescoSemaforo = false
+   
+   
+   
+   
+   
     override func viewDidLoad() {
-        super.viewDidLoad()
-        conexionMarvel()
+      super.viewDidLoad()
+      conexionMarvel()
+      refreshControl = refrescarPantalla
       
       NotificationCenter.default.addObserver(forName: NSNotification.Name("CARGAOK"), object: nil, queue: OperationQueue.main) {
          _ in
-         // cuando carga los datos lo meto en la BBDD
-         cargarDatosBBDD()
          
-         NotificationCenter.default.addObserver(forName: NSNotification.Name("CARGABBDDOK"), object: nil, queue: OperationQueue.main) {
-         _ in
+            self.recargaDatosTabla()
          
-            self.tableView.reloadData()
+            if self.refrescoSemaforo {
+               self.refrescoSemaforo = false
+               self.refrescarPantalla.endRefreshing()
+            }
          
             // elimino el brur y el cargando
             guard let blur = self.navigationController?.view.viewWithTag(200) as? UIVisualEffectView, let activity = self.navigationController?.view.viewWithTag(201) as? UIActivityIndicatorView else {
@@ -32,8 +81,9 @@ class ComicTableViewController: UITableViewController {
             blur.removeFromSuperview()
             activity.stopAnimating()
             activity.removeFromSuperview()
-         }
       }
+      
+
       
       
       // mientras cargo pongo blur negro
@@ -52,72 +102,84 @@ class ComicTableViewController: UITableViewController {
 
     }
   
-   /*
-   override func viewDidLoad() {
 
-      let blurEffect = UIBlurEffect(style: .dark)
-      let blurredEffectView = UIVisualEffectView(effect: blurEffect)
-      blurredEffectView .frame = self.view.frame
-      view.addSubview(blurredEffectView)
-      
-      let activity = UIActivityIndicatorView(style: .whiteLarge)
-      activity.frame = self.view.frame
-      activity.startAnimating()
-      
-   }
-   */
    
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 1
+      
+        return resultComics.sections?.count ?? 0
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return datosCarga?.data.count ?? 0
+        return resultComics.sections?.first?.numberOfObjects ?? 0
     }
 
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "celda", for: indexPath) as! ComicTableViewCell
+      print("interior indexPath \(indexPath)")
       
-         if let datosComic = datosCarga?.data.results[indexPath.row] {
-         
-            cell.Titulo.text = datosComic.title
+         let cell = tableView.dequeueReusableCell(withIdentifier: "celda", for: indexPath) as! ComicTableViewCell
+      
+         let datosComic = resultComics.object(at: indexPath)
+         cell.Titulo.text = datosComic.titulo
             
-            var descripcionText:String = ""
-            if let descripcion = datosComic.description {
-               descripcionText += descripcion
-            }
+         var descripcionText:String = ""
+         // al cargar los datos ya hemos rellenado las dexcripciones vacias, por lo que todas existen
+         descripcionText += datosComic.detalle!
+         let precio = datosComic.precio
+         if precio > 0 {
+            descripcionText += "\n"
+            descripcionText += "Precio: \(precio)"
+         }
+      
+         let descripcionTextSinHtml = descripcionText.replacingOccurrences(of: "<br>", with: "\n", options: NSString.CompareOptions.literal, range:nil)
+      
+         cell.miDescripcion.text = descripcionTextSinHtml
             
-            if let precio = datosComic.prices.first?.price, precio > 0 {
-               descripcionText += "\n"
-               descripcionText += "Precio: \(precio)"
-            }
-            cell.miDescripcion.text = descripcionText
-            
-            if let imagenUrl = datosComic.thumbnail.fullPath {
-              // imagenUrl += "portrait_xlarge"
-               recuperaURL(url: imagenUrl) {
-                  imagen in
-                  DispatchQueue.main.async {
-                     if let resize = imagen.resizeImage(newWidth: cell.imagen.bounds.size.width) {
-                           cell.imagen.image = resize
-                        }
+         if let imagenUrl = datosComic.portadaURL {
+         // imagenUrl += "portrait_xlarge"
+            recuperaURL(url: imagenUrl) {
+               imagen in
+               DispatchQueue.main.async {
+                  if let resize = imagen.resizeImage(newWidth: cell.imagen.bounds.size.width) {
+                     if tableView.visibleCells.contains(cell) {
+                        cell.imagen.image = resize
                      }
+                     datosComic.portada = resize.pngData()
+                     saveContext()
                   }
                }
             }
+         }
 
-
-        // Configure the cell...
-      return cell
+   // Configure the cell...
+   return cell
    
-    }
+   }
 
 
+      // cuando clicamos sacamos una ventana de alerta con dos botones. uno cierra la ventana, el otro abbre el menu compartir
+   override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+      let alert = UIAlertController(title: "Acción", message: "Elije qué quiere hacer", preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "Nada", style: .default, handler: nil))
+      alert.addAction(UIAlertAction(title: "Compartir", style: .default) {
+         _ in
+         let dato = self.resultComics.object(at: indexPath)
+         // los opcionales
+         if let titulo = dato.titulo, let datoPortada = dato.portada, let portada = UIImage(data: datoPortada) {
+            let items = [titulo, portada] as [Any]
+            let compartir = UIActivityViewController(activityItems: items, applicationActivities: nil)
+            // que quiero prohibir para uqe no se pueda compartir?
+            // puede ser compartir.excludedActivityTypes = [.mail, ]
+            compartir.excludedActivityTypes = [UIActivity.ActivityType.mail, UIActivity.ActivityType.postToVimeo]
+            self.present(compartir, animated: true, completion: nil)
+         }
+      })
+      present(alert, animated: true, completion: nil)
+   }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -162,6 +224,14 @@ class ComicTableViewController: UITableViewController {
         // Pass the selected object to the new view controller.
     }
     */
+   func recargaDatosTabla() {
+      do {
+         try resultComics.performFetch()
+      } catch {
+         print("Error en la consulta en la Base de Datos\(error)")
+      }
+      tableView.reloadData()
+   }
    
    deinit {
       NotificationCenter.default.removeObserver(self, name: NSNotification.Name("CARGAOK"), object: nil)

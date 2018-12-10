@@ -36,16 +36,24 @@ func conexionMarvel() {
    let queryts = URLQueryItem(name: "ts", value: ts)
    let queryApiKey = URLQueryItem(name: "apikey", value: publicKey)
    let queryHash = URLQueryItem(name: "hash", value: valorFirmar.MD5)
-   //let queryLimit = 
+   let queryLimit = URLQueryItem(name: "limit", value: "100")
+   // le pido solo comics de tapa dura
+   // let queryOrder = URLQueryItem(name: "orderBy", value: "onsaleDate")
+   // le pido solo comics de tapa dura
+   //let queryFormat = URLQueryItem(name: "format", value: "hardcover")
+
    
- 
    var url = URLComponents()
    url.scheme = baseURL.scheme
-   url.host = baseURL.host
-   url.path = baseURL.path
-   url.queryItems = [queryts, queryApiKey, queryHash]
    
-     // inicializamos la conexión
+   url.host = baseURL.host
+  
+   url.path = baseURL.path
+   
+   url.queryItems = [queryts, queryApiKey, queryHash, queryLimit]
+  
+   
+   // inicializamos la conexión
    let session = URLSession.shared
    
    // pedimos la petición // el comics, es el  de comics?ts=1&apikey=1234&hash=ffd275c51305....
@@ -56,9 +64,9 @@ func conexionMarvel() {
    request.addValue("*/*", forHTTPHeaderField: "Accept")
    
    // las siguentes veces que llamemos con nuestro etag, Marvel nos pide que añadamos esto
-//   if let etag = etag {
-//      request.addValue(etag, forHTTPHeaderField: "If-None-Match")
-//   }
+   //   if let etag = etag {
+   //      request.addValue(etag, forHTTPHeaderField: "If-None-Match")
+   //   }
    
    session.dataTask(with: request){
       (data, response, error) in guard let data = data , let response = response as? HTTPURLResponse, error == nil else {
@@ -112,7 +120,7 @@ extension String {
 }
 
 
-
+// conseguir la imagen de Internet
 func recuperaURL(url:URL, callback:@escaping (UIImage) -> Void) {
    let conexion = URLSession.shared
    conexion.dataTask(with: url) { (data, response, error) in
